@@ -32,7 +32,7 @@ gem "pundit", "~> 2.3"
 gem "stripe", "~> 10.0"
 
 # Background jobs
-gem "sidekiq", "~> 7.2"
+gem "sidekiq", "~> 8.0"
 
 # Image processing
 gem "image_processing", "~> 1.12"
