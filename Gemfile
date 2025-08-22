@@ -29,7 +29,7 @@ gem "devise", "~> 4.9"
 gem "pundit", "~> 2.3"
 
 # Payment processing
-gem "stripe", "~> 10.0"
+gem "stripe", "~> 15.4"
 
 # Background jobs
 gem "sidekiq", "~> 7.2"
