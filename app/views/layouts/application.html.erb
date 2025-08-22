@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <title><%= content_for(:title) || "Music Marketplace - Rent Musical Instruments" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="<%= content_for(:description) || 'Rent musical instruments from trusted owners. Find guitars, pianos, drums and more.' %>">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full bg-gray-50">
+    <div class="min-h-full">
+      <!-- Navigation -->
+      <nav class="bg-white shadow-sm border-b border-gray-200" data-turbo-permanent>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16">
+            <div class="flex">
+              <div class="flex-shrink-0 flex items-center">
+                <%= link_to root_path, class: "flex items-center" do %>
+                  <svg class="h-8 w-8 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                  </svg>
+                  <span class="text-xl font-bold text-gray-900">MusicRent</span>
+                <% end %>
+              </div>
+              <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                <%= link_to "Browse", instruments_path, class: "inline-flex items-center px-1 pt-1 text-sm font-medium #{current_page?(instruments_path) ? 'border-b-2 border-indigo-500 text-gray-900' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'}" %>
+                <% if user_signed_in? %>
+                  <%= link_to "My Rentals", rentals_path, class: "inline-flex items-center px-1 pt-1 text-sm font-medium #{current_page?(rentals_path) ? 'border-b-2 border-indigo-500 text-gray-900' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'}" %>
+                  <% if current_user.owner? || current_user.admin? %>
+                    <%= link_to "Owner Dashboard", owner_dashboard_path, class: "inline-flex items-center px-1 pt-1 text-sm font-medium #{request.path.start_with?('/owner') ? 'border-b-2 border-indigo-500 text-gray-900' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'}" %>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+            
+            <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
+              <!-- Search -->
+              <form action="<%= search_instruments_path %>" method="get" class="relative">
+                <input type="text" name="q" placeholder="Search instruments..." 
+                       value="<%= params[:q] %>"
+                       class="w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+              </form>
+              
+              <% if user_signed_in? %>
+                <!-- User menu -->
+                <div class="ml-3 relative" data-controller="dropdown">
+                  <button type="button" 
+                          data-action="click->dropdown#toggle click@window->dropdown#hide"
+                          class="bg-white flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <%= user_avatar(current_user, "h-8 w-8") %>
+                  </button>
+                  <div data-dropdown-target="menu"
+                       class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <%= link_to "Profile", "#", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+                    <%= link_to "Settings", edit_user_registration_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+                    <hr class="my-1">
+                    <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+                  </div>
+                </div>
+              <% else %>
+                <%= link_to "Sign in", new_user_session_path, class: "text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium" %>
+                <%= link_to "Sign up", new_user_registration_path, class: "ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+              <% end %>
+            </div>
+            
+            <!-- Mobile menu button -->
+            <div class="flex items-center sm:hidden">
+              <button type="button" 
+                      data-controller="mobile-menu"
+                      data-action="click->mobile-menu#toggle"
+                      class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div class="hidden sm:hidden" data-mobile-menu-target="panel">
+          <div class="pt-2 pb-3 space-y-1">
+            <%= link_to "Browse", instruments_path, class: "block pl-3 pr-4 py-2 border-l-4 text-base font-medium #{current_page?(instruments_path) ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'}" %>
+            <% if user_signed_in? %>
+              <%= link_to "My Rentals", rentals_path, class: "block pl-3 pr-4 py-2 border-l-4 text-base font-medium #{current_page?(rentals_path) ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'}" %>
+              <% if current_user.owner? || current_user.admin? %>
+                <%= link_to "Owner Dashboard", owner_dashboard_path, class: "block pl-3 pr-4 py-2 border-l-4 text-base font-medium #{request.path.start_with?('/owner') ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'}" %>
+              <% end %>
+            <% end %>
+          </div>
+          <div class="pt-4 pb-3 border-t border-gray-200">
+            <% if user_signed_in? %>
+              <div class="flex items-center px-4">
+                <%= user_avatar(current_user, "h-10 w-10") %>
+                <div class="ml-3">
+                  <div class="text-base font-medium text-gray-800"><%= current_user.full_name %></div>
+                  <div class="text-sm font-medium text-gray-500"><%= current_user.email %></div>
+                </div>
+              </div>
+              <div class="mt-3 space-y-1">
+                <%= link_to "Profile", "#", class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+                <%= link_to "Settings", edit_user_registration_path, class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+                <%= button_to "Sign out", destroy_user_session_path, method: :delete, class: "block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+              </div>
+            <% else %>
+              <div class="mt-3 space-y-1">
+                <%= link_to "Sign in", new_user_session_path, class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+                <%= link_to "Sign up", new_user_registration_path, class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Flash messages -->
+      <% if notice.present? || alert.present? %>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <% if notice.present? %>
+            <div class="rounded-md border p-4 <%= flash_class(:notice) %>" data-controller="flash">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium"><%= notice %></p>
+                </div>
+                <div class="ml-auto pl-3">
+                  <button type="button" data-action="click->flash#close" class="-mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex hover:bg-green-100">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          <% end %>
+          
+          <% if alert.present? %>
+            <div class="rounded-md border p-4 <%= flash_class(:alert) %> mt-2" data-controller="flash">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium"><%= alert %></p>
+                </div>
+                <div class="ml-auto pl-3">
+                  <button type="button" data-action="click->flash#close" class="-mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex hover:bg-red-100">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Main content -->
+      <main>
+        <%= yield %>
+      </main>
+
+      <!-- Footer -->
+      <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
+            <div>
+              <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">About</h3>
+              <ul class="mt-4 space-y-4">
+                <li><%= link_to "How it works", "#", class: "text-base text-gray-500 hover:text-gray-900" %></li>
+                <li><%= link_to "Trust & Safety", "#", class: "text-base text-gray-500 hover:text-gray-900" %></li>
+                <li><%= link_to "Insurance", "#", class: "text-base text-gray-500 hover:text-gray-900" %></li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Categories</h3>
+              <ul class="mt-4 space-y-4">
+                <li><%= link_to "Guitars", instruments_path(category: "guitar"), class: "text-base text-gray-500 hover:text-gray-900" %></li>
+                <li><%= link_to "Pianos", instruments_path(category: "piano"), class: "text-base text-gray-500 hover:text-gray-900" %></li>
+                <li><%= link_to "Drums", instruments_path(category: "drums"), class: "text-base text-gray-500 hover:text-gray-900" %></li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Support</h3>
+              <ul class="mt-4 space-y-4">
+                <li><%= link_to "Help Center", "#", class: "text-base text-gray-500 hover:text-gray-900" %></li>
+                <li><%= link_to "Contact Us", "#", class: "text-base text-gray-500 hover:text-gray-900" %></li>
+                <li><%= link_to "FAQ", "#", class: "text-base text-gray-500 hover:text-gray-900" %></li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Legal</h3>
+              <ul class="mt-4 space-y-4">
+                <li><%= link_to "Privacy Policy", "#", class: "text-base text-gray-500 hover:text-gray-900" %></li>
+                <li><%= link_to "Terms of Service", "#", class: "text-base text-gray-500 hover:text-gray-900" %></li>
+                <li><%= link_to "Cookie Policy", "#", class: "text-base text-gray-500 hover:text-gray-900" %></li>
+              </ul>
+            </div>
+          </div>
+          <div class="mt-8 border-t border-gray-200 pt-8">
+            <p class="text-base text-gray-400 text-center">
+              &copy; <%= Date.current.year %> MusicRent. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
