@@ -26,7 +26,7 @@ gem "bcrypt", "~> 3.1.7"
 gem "devise", "~> 4.9"
 
 # Authorization
-gem "pundit", "~> 2.3"
+gem "pundit", "~> 2.5"
 
 # Payment processing
 gem "stripe", "~> 10.0"
