@@ -41,7 +41,7 @@ gem "image_processing", "~> 1.12"
 gem "geocoder", "~> 1.8"
 
 # Pagination
-gem "pagy", "~> 6.0"
+gem "pagy", "~> 9.4"
 
 # Friendly URLs
 gem "friendly_id", "~> 5.5"
